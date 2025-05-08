@@ -6,8 +6,8 @@ import * as Yup from 'yup';
 import LockIcon from '@mui/icons-material/Lock';
 
 const LoginSchema = Yup.object().shape({
-    username: Yup.string().required('Username is required'),
-    password: Yup.string().required('Password is required'),
+    UserName: Yup.string().required('Username is required'),
+    Password: Yup.string().required('Password is required'),
 });
 
 const LoginPage = () => {
@@ -17,20 +17,39 @@ const LoginPage = () => {
     const role = searchParams.get('role'); // 'admin' or 'employee'
 
     const handleLogin = async (values) => {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
-            method: 'POST',
-            body: JSON.stringify({ ...values, role }),
-            headers: { 'Content-Type': 'application/json' },
-        });
+        try {
+            const endpoint =
+                role === 'admin'
+                    ? `${import.meta.env.VITE_API_URL}/api/admin/auth/login`
+                    : `${import.meta.env.VITE_API_URL}/api/auth/login`;
 
-        const data = await response.json();
-        if (data.success) {
-            localStorage.setItem('user', JSON.stringify({ username: values.username, role: data.role }));
-            navigate(data.role === 'admin' ? '/admin' : '/employee');
-        } else {
-            alert('Invalid credentials');
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...values, role }), // still pass role to backend
+            });
+
+            const data = await response.json();
+            // console.log(response.ok, data.token, data.role)
+            if (response.ok && data.token && data.role) {
+                const userData = {
+                    UserName: values.UserName,
+                    role: data.role,
+                    token: data.token,
+                };
+                localStorage.setItem('user', JSON.stringify(userData));
+
+                // Redirect based on backend role
+                navigate(data.role === 'admin' ? '/admin' : '/employee', { replace: true });
+            } else {
+                alert(data.msg || 'Invalid credentials');
+            }
+        } catch (err) {
+            alert('Login failed');
+            console.error(err);
         }
     };
+
 
     return (
         <Container maxWidth="xs" style={{ marginTop: '40px' }}>
@@ -38,36 +57,36 @@ const LoginPage = () => {
                 {role === 'admin' ? 'Admin Login' : 'Employee Login'}
             </Typography>
             <Formik
-                initialValues={{ username: '', password: '' }}
+                initialValues={{ UserName: '', Password: '' }}
                 validationSchema={LoginSchema}
                 onSubmit={handleLogin}
             >
                 {({ values, errors, handleChange, handleBlur, handleSubmit }) => (
                     <Form onSubmit={handleSubmit}>
                         <Field
-                            name="username"
+                            name="UserName"
                             as={TextField}
-                            label="Username"
+                            label="UserName"
                             fullWidth
                             margin="normal"
                             onChange={handleChange}
                             onBlur={handleBlur}
-                            value={values.username}
-                            error={!!errors.username}
-                            helperText={errors.username}
+                            value={values.UserName}
+                            error={!!errors.UserName}
+                            helperText={errors.UserName}
                         />
                         <Field
-                            name="password"
+                            name="Password"
                             as={TextField}
                             label="Password"
-                            type="password"
+                            type="Password"
                             fullWidth
                             margin="normal"
                             onChange={handleChange}
                             onBlur={handleBlur}
-                            value={values.password}
-                            error={!!errors.password}
-                            helperText={errors.password}
+                            value={values.Password}
+                            error={!!errors.Password}
+                            helperText={errors.Password}
                         />
                         <Button
                             type="submit"

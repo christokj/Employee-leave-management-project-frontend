@@ -1,22 +1,75 @@
-// src/pages/AdminPage.js
 import React from 'react';
-import { Route, Routes } from 'react-router-dom';
-import AdminDashboard from '../components/admin/AdminDashboard';
-import ManageDepartments from '../components/admin/ManageDepartments';
-import ManageEmployees from '../components/admin/ManageEmployees';
-import ManageLeaveApplications from '../components/admin/ManageLeaveApplications';
+import { Outlet, Link, useLocation } from 'react-router-dom';
+import {
+    Box,
+    Drawer,
+    List,
+    ListItem,
+    ListItemText,
+    Toolbar,
+    AppBar,
+    Typography,
+    CssBaseline,
+    ListItemButton
+} from '@mui/material';
 
-const AdminPage = () => {
+const drawerWidth = 240;
+
+const menuItems = [
+    { label: 'Dashboard', path: '/admin/dashboard' },
+    { label: 'Department', path: '/admin/department' },
+    { label: 'Leave Type', path: '/admin/leave-type' },
+    { label: 'Employees', path: '/admin/employees' },
+    { label: 'Leave Management', path: '/admin/leave-management' },
+    { label: 'Change Password', path: '/admin/change-password' },
+    { label: 'Logout', path: '/login' },
+];
+
+export default function AdminPage() {
+    const location = useLocation();
+
     return (
-        <div>
-            <Routes>
-                <Route path="/" element={<AdminDashboard />} />
-                <Route path="departments" element={<ManageDepartments />} />
-                <Route path="employees" element={<ManageEmployees />} />
-                <Route path="leave-applications" element={<ManageLeaveApplications />} />
-            </Routes>
-        </div>
+        <Box sx={{ display: 'flex' }}>
+            <CssBaseline />
+            <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+                <Toolbar>
+                    <Typography variant="h6" noWrap component="div">
+                        Admin
+                    </Typography>
+                </Toolbar>
+            </AppBar>
+            <Drawer
+                variant="permanent"
+                sx={{
+                    width: drawerWidth,
+                    flexShrink: 0,
+                    [`& .MuiDrawer-paper`]: {
+                        width: drawerWidth,
+                        boxSizing: 'border-box',
+                    },
+                }}
+            >
+                <Toolbar />
+                <Box sx={{ overflow: 'auto' }}>
+                    <List>
+                        {menuItems.map((item) => (
+                            <ListItem key={item.label} disablePadding>
+                                <ListItemButton
+                                    component={Link}
+                                    to={item.path}
+                                    selected={location.pathname === item.path}
+                                >
+                                    <ListItemText primary={item.label} />
+                                </ListItemButton>
+                            </ListItem>
+                        ))}
+                    </List>
+                </Box>
+            </Drawer>
+            <Box component="main" sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3 }}>
+                <Toolbar />
+                <Outlet />
+            </Box>
+        </Box>
     );
-};
-
-export default AdminPage;
+}   
